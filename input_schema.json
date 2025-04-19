@@ -1,0 +1,31 @@
+{
+    "title": "GMGN Wallet Statistics Scraper",
+    "type": "object",
+    "schemaVersion": 1,
+    "properties": {
+        "walletAddress": {
+            "title": "Wallet Address",
+            "type": "string",
+            "description": "The Solana wallet address to fetch statistics for",
+            "editor": "textfield",
+            "prefill": "3kebnKw7cPdSkLRfiMEALyZJGZ4wdiSRvmoN4rD1yPzV"
+        },
+        "period": {
+            "title": "Time Period",
+            "type": "string",
+            "description": "The time period for the statistics (e.g., 7d, 30d)",
+            "editor": "textfield",
+            "prefill": "7d"
+        },
+        "maxRetries": {
+            "title": "Maximum Retries",
+            "type": "integer",
+            "description": "Maximum number of retries for failed requests",
+            "editor": "number",
+            "prefill": 3,
+            "minimum": 0,
+            "maximum": 10
+        }
+    },
+    "required": ["walletAddress"]
+}

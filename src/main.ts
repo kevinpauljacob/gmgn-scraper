@@ -13,13 +13,12 @@ import { PlaywrightCrawler, RequestList } from 'crawlee';
 // note that we need to use `.js` even when inside TS files
 import { firefox } from 'playwright';
 import { launchOptions as camoufoxLaunchOptions } from 'camoufox-js';
-import * as dotenv from 'dotenv';
+
 import { WalletData, WalletDataCollection } from './types.js';
 
 // Create a router function that accepts and returns data
 import { createRouter } from './routes.js';
 
-dotenv.config();
 interface Input {
     walletAddresses: string[];
     period: string;

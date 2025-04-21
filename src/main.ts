@@ -13,11 +13,13 @@ import { PlaywrightCrawler, RequestList } from 'crawlee';
 // note that we need to use `.js` even when inside TS files
 import { firefox } from 'playwright';
 import { launchOptions as camoufoxLaunchOptions } from 'camoufox-js';
+import * as dotenv from 'dotenv';
 import { WalletData, WalletDataCollection } from './types.js';
 
 // Create a router function that accepts and returns data
 import { createRouter } from './routes.js';
 
+dotenv.config();
 interface Input {
     walletAddresses: string[];
     period: string;
@@ -29,7 +31,11 @@ await Actor.init();
 
 // Structure of input is defined in input_schema.json
 const {
-    walletAddresses = [],
+    walletAddresses = [
+        // '3kebnKw7cPdSkLRfiMEALyZJGZ4wdiSRvmoN4rD1yPzV',
+        // 'BuPuiqgry31hqxrJ4Vv9hDYQ4735zQcLbRUXKEK4TgVh',
+        // '72e6QM7gn9MH5u1YpgQbduexm4WAon1cnsSXPqKnLQec',
+    ],
     period = '7d',
     maxRetries = 3,
 } = (await Actor.getInput<Input>()) ?? ({} as Input);
@@ -64,9 +70,9 @@ const requestList = await RequestList.open('wallet-stats', requests);
 // Create a router that accepts our data array
 const router = createRouter(allWalletData);
 
-// Add this proxy configuration
+// Make proxy configuration optional based on environment variable
 const proxyConfiguration = await Actor.createProxyConfiguration({
-    groups: ['RESIDENTIAL'],
+    groups: ['DATACENTER'], // Switch from RESIDENTIAL to DATACENTER (much cheaper)
     countryCode: 'US',
 });
 
@@ -82,60 +88,11 @@ const crawler = new PlaywrightCrawler({
             headless: true,
             args: [
                 '--disable-blink-features=AutomationControlled',
-                '--disable-features=IsolateOrigins,site-per-process',
-                '--disable-site-isolation-trials',
-                '--disable-web-security',
-                '--disable-features=BlockInsecurePrivateNetworkRequests',
                 '--disable-gpu',
-                '--disable-software-rasterizer',
                 '--disable-dev-shm-usage',
                 '--no-sandbox',
                 '--disable-setuid-sandbox',
-                '--disable-extensions',
-                '--disable-notifications',
-                '--disable-popup-blocking',
-                '--disable-background-timer-throttling',
-                '--disable-backgrounding-occluded-windows',
-                '--disable-renderer-backgrounding',
-                '--disable-background-networking',
-                '--disable-sync',
-                '--disable-translate',
-                '--metrics-recording-only',
-                '--mute-audio',
-                '--no-first-run',
-                '--no-default-browser-check',
-                '--no-pings',
-                '--no-zygote',
-                '--window-size=1920,1080',
-                // Safe performance optimizations
-                '--disable-application-cache',
-                '--disable-cache',
-                '--disk-cache-size=0',
-                '--disable-offline-load-stale-cache',
-                '--disable-offline-auto-reload',
-                '--disable-reading-from-canvas',
-                '--disable-remote-fonts',
-                '--disable-shared-workers',
-                '--disable-webgl',
-                '--disable-3d-apis',
-                '--disable-accelerated-2d-canvas',
-                '--disable-threaded-animation',
-                '--disable-threaded-scrolling',
-                '--disable-touch-adjustment',
-                '--disable-touch-drag-drop',
-                '--disable-touch-selection',
-                '--disable-v8-idle-tasks',
-                '--disable-video-capture',
-                '--disable-webrtc',
-                '--disable-xss-auditor',
-                '--force-color-profile=srgb',
-                '--force-device-scale-factor=1',
-                '--ignore-certificate-errors',
-                '--ignore-ssl-errors',
-                '--no-experiments',
-                '--no-user-gesture-required',
-                '--process-per-site',
-                '--use-gl=swiftshader',
+                // Keep only essential arguments for performance and anti-detection
             ],
         }),
     },

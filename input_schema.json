@@ -3,12 +3,12 @@
     "type": "object",
     "schemaVersion": 1,
     "properties": {
-        "walletAddress": {
-            "title": "Wallet Address",
-            "type": "string",
-            "description": "The Solana wallet address to fetch statistics for",
-            "editor": "textfield",
-            "prefill": "3kebnKw7cPdSkLRfiMEALyZJGZ4wdiSRvmoN4rD1yPzV"
+        "walletAddresses": {
+            "title": "Wallet Addresses",
+            "type": "array",
+            "description": "List of Solana wallet addresses to fetch statistics for",
+            "editor": "stringList",
+            "prefill": []
         },
         "period": {
             "title": "Time Period",
@@ -27,5 +27,5 @@
             "maximum": 10
         }
     },
-    "required": ["walletAddress"]
+    "required": ["walletAddresses"]
 }

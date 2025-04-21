@@ -77,7 +77,8 @@ const proxyConfiguration = await Actor.createProxyConfiguration({
 
 const crawler = new PlaywrightCrawler({
     proxyConfiguration,
-    // Update this to match the number of wallet addresses
+    minConcurrency: 3,
+    maxConcurrency: walletAddresses.length,
     maxRequestsPerCrawl: walletAddresses.length,
     requestHandler: router,
     requestList,

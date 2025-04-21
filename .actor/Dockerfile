@@ -1,43 +1,60 @@
-# Stage 1: build
+# Specify the base Docker image. You can read more about
+# the available images at https://crawlee.dev/docs/guides/docker-images
+# You can also use any other image from Docker Hub.
 FROM apify/actor-node-playwright-chrome:20 AS builder
 
-# Switch to the non-root user defined in the base image
-USER myuser
-WORKDIR /home/myuser
+# Check preinstalled packages
+RUN npm ls crawlee apify puppeteer playwright
 
-# 1) Copy package manifests and install all dependencies (including dev)
-COPY package*.json ./
+# Copy just package.json and package-lock.json
+# to speed up the build using Docker layer cache.
+COPY --chown=myuser package*.json ./
+
+# Install all dependencies. Don't audit to speed up the installation.
 RUN npm install --include=dev --audit=false
 
-# 2) Copy the rest of the source and build
-COPY . ./
+# Next, copy the source files using the user set
+# in the base image.
+COPY --chown=myuser . ./
+
+# Install all dependencies and build the project.
+# Don't audit to speed up the installation.
 RUN npm run build
 
-
-# Stage 2: runtime
+# Create final image
 FROM apify/actor-node-playwright-chrome:20
 
-# Switch to the non-root user and set working dir
-USER myuser
-WORKDIR /home/myuser
+# Check preinstalled packages
+RUN npm ls crawlee apify puppeteer playwright
 
-# 1) Copy package manifests and install only production deps
-COPY package*.json ./
-# Ensure Camoufox postinstall runs if needed
+# Copy just package.json and package-lock.json
+# to speed up the build using Docker layer cache.
+COPY --chown=myuser package*.json ./
+
+# Ensure we'll install Camoufox using the npm postinstall script
 ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=0
+# Install NPM packages, skip optional and development dependencies to
+# keep the image small. Avoid logging too much and print the dependency
+# tree for debugging
 RUN npm --quiet set progress=false \
-    && npm install --omit=dev --omit=optional --audit=false \
-    && rm -rf ~/.npm
+    && npm install --omit=dev \
+    && echo "Installed NPM packages:" \
+    && (npm list --omit=dev --all || true) \
+    && echo "Node.js version:" \
+    && node --version \
+    && echo "NPM version:" \
+    && npm --version \
+    && rm -r ~/.npm
 
-# 2) Copy the built artifacts
-COPY --from=builder /home/myuser/dist ./dist
+# Copy built JS files from builder image
+COPY --from=builder --chown=myuser /home/myuser/dist ./dist
 
-# 3) Copy any startup scripts (e.g. Xvfb launcher)
-COPY start_xvfb_and_run_cmd.sh ./
+# Next, copy the remaining files and directories with the source code.
+# Since we do this after NPM install, quick build will be really fast
+# for most source file changes.
+COPY --chown=myuser . ./
 
-# 4) Copy only other runtime files if absolutely needed
-#    (avoid copying full context to preserve layer cache)
-# COPY input_schema.json ./
 
-# Entry point: start Xvfb and launch production server
-CMD ["bash", "start_xvfb_and_run_cmd.sh", "npm", "run", "start:prod", "--silent"]
+# Run the image. If you know you won't need headful browsers,
+# you can remove the XVFB start script for a micro perf gain.
+CMD ./start_xvfb_and_run_cmd.sh && npm run start:prod --silent

@@ -71,10 +71,12 @@ const requestList = await RequestList.open('wallet-stats', requests);
 const router = createRouter(allWalletData);
 
 // Make proxy configuration optional based on environment variable
-const proxyConfiguration = await Actor.createProxyConfiguration({
-    groups: ['DATACENTER'], // Switch from RESIDENTIAL to DATACENTER (much cheaper)
-    countryCode: 'US',
-});
+// const proxyConfiguration = await Actor.createProxyConfiguration({
+//     groups: ['DATACENTER'], // Switch from RESIDENTIAL to DATACENTER (much cheaper)
+//     countryCode: 'US',
+// });
+
+const proxyConfiguration = undefined;
 
 const crawler = new PlaywrightCrawler({
     proxyConfiguration,
